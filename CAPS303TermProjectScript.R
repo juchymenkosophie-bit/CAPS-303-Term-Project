@@ -117,35 +117,78 @@ fatigue_df$Muscle <- factor(fatigue_df$Muscle,
 
 #Now lets make our figures for VM comparison of fatiguability
 
-VM_plot<-ggplot(EMG_df, aes(x = factor(Participant))) +
-  geom_bar(aes(y = Control_VM_Post_Percent, fill="Control"), stat="identity", position="dodge") +
-  geom_bar(aes(y = Caffeine_VM_Post_Percent, fill="Caffeine"), stat="identity", position="dodge") +
-  labs(title="VM %MVC Post-Exercise in Control vs Caffeine",
-       y="%MVC", x="Participant") +
-  scale_fill_manual(name="Condition", values=c("Control"="steelblue","Caffeine"="firebrick")) +
+VM_means <- data.frame(
+  Condition = c("Control", "Caffeine"),
+  Mean = c(
+    mean(EMG_df$Control_VM_Post_Percent, na.rm = TRUE),
+    mean(EMG_df$Caffeine_VM_Post_Percent, na.rm = TRUE)),
+  SD = c(
+    SD_Control_VM,
+    SD_Caffeine_VM))
+
+VM_plot_mean <- ggplot(VM_means,
+                       aes(x = Condition, y = Mean, fill = Condition)) +
+  geom_bar(stat = "identity", width = 0.6) +
+  geom_errorbar(aes(ymin = Mean - SD,
+                    ymax = Mean + SD),
+                width = 0.15) +
+  labs(title="Average VM Fatigability (Control vs Caffeine)",
+       x="Condition", y="Mean %MVC Post") +
+  scale_fill_manual(values=c("Control"="steelblue","Caffeine"="firebrick")) +
   theme_minimal()
-VM_plot
+VM_plot_mean
+
 
 #Figure for VL comparison of fatiguability
-VL_plot<-ggplot(EMG_df, aes(x = factor(Participant))) +
-  geom_bar(aes(y = Control_VL_Post_Percent, fill="Control"), stat="identity", position="dodge") +
-  geom_bar(aes(y = Caffeine_VL_Post_Percent, fill="Caffeine"), stat="identity", position="dodge") +
-  labs(title="VL %MVC Post-Exercise in Control vs Caffeine",
-       y="%MVC", x="Participant") +
-  scale_fill_manual(name="Condition", values=c("Control"="steelblue","Caffeine"="firebrick")) +
+VL_means <- data.frame(
+  Condition = c("Control", "Caffeine"),
+  Mean = c(
+    mean(EMG_df$Control_VL_Post_Percent, na.rm = TRUE),
+    mean(EMG_df$Caffeine_VL_Post_Percent, na.rm = TRUE)),
+  SD = c(
+    SD_Control_VL,
+    SD_Caffeine_VL))
+
+VL_plot_mean <- ggplot(VL_means,
+                       aes(x = Condition, y = Mean, fill = Condition)) +
+  geom_bar(stat = "identity", width = 0.6) +
+  geom_errorbar(aes(ymin = Mean - SD,
+                    ymax = Mean + SD),
+                width = 0.15) +
+  labs(title="Average VL Fatigability (Control vs Caffeine)",
+       x="Condition", y="Mean %MVC Post") +
+  scale_fill_manual(values=c("Control"="steelblue","Caffeine"="firebrick")) +
   theme_minimal()
-VL_plot
+VL_plot_mean
+
 
 # Make the figure to compare VL vs VM under both conditions (after pivot_longer)
-Fatigue_Comparison_Plot <- ggplot(fatigue_df,
-                                  aes(x = Muscle,
-                                      y = Fatigue,
-                                      fill = Condition)) +
-  geom_bar(stat="identity", position=position_dodge()) +
-  labs(title = "Comparison of VM and VL Fatigability\nAcross Control and Caffeine Conditions",
-       x = "Muscle",
-       y = "%MVC Post (Relative to Pre)") +
-  scale_fill_manual(values=c("Control"="steelblue","Caffeine"="firebrick")) +
-  theme_minimal() +
-  theme(text = element_text(size = 12))
-Fatigue_Comparison_Plot
+
+fatigue_summary <- data.frame(
+  Muscle = c("VM", "VM", "VL", "VL"),
+  Condition = c("Control", "Caffeine", "Control", "Caffeine"),
+  Mean = c(
+    mean(EMG_df$Control_VM_Post_Percent, na.rm = TRUE),
+    mean(EMG_df$Caffeine_VM_Post_Percent, na.rm = TRUE),
+    mean(EMG_df$Control_VL_Post_Percent, na.rm = TRUE),
+    mean(EMG_df$Caffeine_VL_Post_Percent, na.rm = TRUE)),
+  SD = c(
+    SD_Control_VM,
+    SD_Caffeine_VM,
+    SD_Control_VL,
+    SD_Caffeine_VL))
+
+Fatigue_Comparison_MeanPlot <- ggplot(fatigue_summary,
+                                      aes(x = Muscle, y = Mean, fill = Condition)) +
+  geom_bar(stat = "identity",
+           position = position_dodge(width = 0.7),
+           width = 0.6) +
+  geom_errorbar(aes(ymin = Mean - SD,
+                    ymax = Mean + SD),
+                width = 0.15,
+                position = position_dodge(width = 0.7)) +
+  labs(title="Mean VM vs VL Fatigability (Control vs Caffeine)",
+       x="Muscle", y="Mean %MVC Post (Relative to Pre)") +
+  scale_fill_manual(values=c("Control"="steelblue", "Caffeine"="firebrick")) +
+  theme_minimal()
+Fatigue_Comparison_MeanPlot
